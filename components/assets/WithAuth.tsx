@@ -15,15 +15,8 @@ const WithAuth: React.FC<WithAuthProps> = ({ restricted = true, children }) => {
   const router = useRouter();
   const userState = useUserState();
 
-  // Derived state
-  const authedUser = userState.status === 'resolved' && userState.data.auth;
-
   // Render
-  if (userState.status === 'pending') {
-    return <Loading />;
-  }
-
-  if ((restricted && !authedUser) || (!restricted && authedUser)) {
+  if ((restricted && !userState.auth) || (!restricted && userState.auth)) {
     router.replace('/');
   }
 
