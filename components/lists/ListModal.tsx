@@ -41,8 +41,7 @@ const ListModal = () => {
     if (
       listModalState.item &&
       listModalState.operation &&
-      userState.status === 'resolved' &&
-      userState.data.auth &&
+      userState.auth &&
       listState.lists.status !== 'resolved'
     ) {
       // If we have an authed user, get their lists as well
@@ -268,7 +267,7 @@ const ListModal = () => {
                 </div>
               ) : null}
 
-              {userState.status === 'resolved' && userState.data.auth ? (
+              {userState.auth ? (
                 <>
                   {listModalState.operation === 'add' ? (
                     <div className="mt-6">

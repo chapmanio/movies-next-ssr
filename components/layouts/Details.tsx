@@ -72,10 +72,11 @@ const DetailsLayout: React.FC = ({ children }) => {
   const handleSignOut = () => {
     signOut()
       .then(() => {
-        userDispatch({ type: 'SET_USER', user: { auth: false } });
+        userDispatch({ type: 'CLEAR_USER' });
       })
       .catch((error: ApiError) => {
-        userDispatch({ type: 'ERROR', error });
+        //TODO: Handle error
+        console.error(error);
       });
   };
 
@@ -94,9 +95,7 @@ const DetailsLayout: React.FC = ({ children }) => {
                 </Link>
               </div>
               <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:items-center sm:space-x-8">
-                {userState.status === 'pending' ? (
-                  <div className="h-4 w-14 animate-pulse rounded-md bg-gray-100" />
-                ) : userState.status === 'resolved' && userState.data.auth ? (
+                {userState.auth ? (
                   <NavLink href="/lists">My lists</NavLink>
                 ) : (
                   <>
@@ -130,7 +129,7 @@ const DetailsLayout: React.FC = ({ children }) => {
 
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               <div className="relative ml-3">
-                {userState.status === 'resolved' && userState.data.auth ? (
+                {userState.auth ? (
                   <>
                     <div>
                       <button
@@ -146,7 +145,7 @@ const DetailsLayout: React.FC = ({ children }) => {
 
                         <Image
                           src={`https://www.gravatar.com/avatar/${md5(
-                            userState.data.user.email
+                            userState.user.email
                           )}?s=56&r=pg`}
                           alt=""
                           height={32}
@@ -216,7 +215,7 @@ const DetailsLayout: React.FC = ({ children }) => {
         {showMobileNav ? (
           <div className="sm:hidden" id="mobile-menu">
             <div className="space-y-1 pt-2 pb-3">
-              {userState.status === 'resolved' && userState.data.auth ? (
+              {userState.auth ? (
                 <MobileLink href="/lists">My lists</MobileLink>
               ) : (
                 <>
@@ -226,14 +225,12 @@ const DetailsLayout: React.FC = ({ children }) => {
               )}
             </div>
 
-            {userState.status === 'resolved' && userState.data.auth ? (
+            {userState.auth ? (
               <div className="border-t border-gray-200 pt-4 pb-3">
                 <div className="flex items-center px-4">
                   <div className="flex-shrink-0">
                     <Image
-                      src={`https://www.gravatar.com/avatar/${md5(
-                        userState.data.user.email
-                      )}?s=64&r=pg`}
+                      src={`https://www.gravatar.com/avatar/${md5(userState.user.email)}?s=64&r=pg`}
                       alt=""
                       height={40}
                       width={40}
@@ -242,10 +239,10 @@ const DetailsLayout: React.FC = ({ children }) => {
                   </div>
                   <div className="ml-3">
                     <div className="break-words text-base font-medium text-gray-800">
-                      {userState.data.user.name}
+                      {userState.user.name}
                     </div>
                     <div className="break-all text-sm font-medium text-gray-500">
-                      {userState.data.user.email}
+                      {userState.user.email}
                     </div>
                   </div>
                 </div>

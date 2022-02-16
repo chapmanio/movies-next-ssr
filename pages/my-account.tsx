@@ -36,9 +36,9 @@ const MyAccount = () => {
 
   // Effects
   useEffect(() => {
-    if (userState.status === 'resolved' && userState.data.auth) {
-      setName(userState.data.user.name);
-      setEmail(userState.data.user.email);
+    if (userState.auth) {
+      setName(userState.user.name);
+      setEmail(userState.user.email);
     }
   }, [userState]);
 
@@ -46,7 +46,7 @@ const MyAccount = () => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (userState.status === 'resolved' && userState.data.auth) {
+    if (userState.auth) {
       if (password !== confirm) {
         setError('Passwords do not match');
       } else {

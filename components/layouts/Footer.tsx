@@ -18,10 +18,11 @@ const Footer = () => {
   const handleSignOut = () => {
     signOut()
       .then(() => {
-        userDispatch({ type: 'SET_USER', user: { auth: false } });
+        userDispatch({ type: 'CLEAR_USER' });
       })
       .catch((error: ApiError) => {
-        userDispatch({ type: 'ERROR', error });
+        // TODO: handle error
+        console.error(error);
       });
   };
 
@@ -31,7 +32,7 @@ const Footer = () => {
       <footer className="bg-white">
         <div className="mx-auto mt-8 max-w-7xl overflow-hidden px-4 py-12 sm:px-6 lg:px-8">
           <nav className="-mx-5 -my-2 flex flex-wrap justify-center" aria-label="Footer">
-            {userState.status === 'resolved' && userState.data.auth ? (
+            {userState.auth ? (
               <>
                 <div className="px-5 py-2">
                   <Link href="/lists">
