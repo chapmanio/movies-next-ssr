@@ -27,7 +27,7 @@ import { searchTv } from '../lib/api/tvShow';
 type Tab = 'all' | 'movie' | 'tv' | 'person';
 
 type ServerSideResponse = {
-  user: AuthUser;
+  // user: AuthUser;
   searchResults?: SearchMultiResponse;
   formattedResults?: ListItemType[];
   error?: ApiError;
@@ -42,15 +42,25 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   console.log(req.headers.cookie);
 
   // Current user
-  let user: AuthUser;
+  const response = await fetch('https://movies-api.chapmanio.dev/api/auth', {
+    headers: {
+      cookie: req.cookies.jwt,
+    },
+  });
 
-  try {
-    user = await authUser();
+  const user = await response.json();
 
-    console.log('index', { user });
-  } catch (error) {
-    user = { auth: false };
-  }
+  console.log({ user });
+
+  // let user: AuthUser;
+
+  // try {
+  //   user = await authUser();
+
+  //   console.log('index', { user });
+  // } catch (error) {
+  //   user = { auth: false };
+  // }
 
   // Search results
   const search = query.search ? query.search.toString() : '';
@@ -66,7 +76,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
 
           return {
             props: {
-              user,
+              // user,
               searchResults: searchAllResults,
               formattedResults: formatSearchAll(searchAllResults),
             },
@@ -76,7 +86,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
 
           return {
             props: {
-              user,
+              // user,
               searchResults: searchMovieResults,
               formattedResults: formatSearchMovie(searchMovieResults),
             },
@@ -86,7 +96,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
 
           return {
             props: {
-              user,
+              // user,
               searchResults: searchTvResults,
               formattedResults: formatSearchTvShow(searchTvResults),
             },
@@ -96,7 +106,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
 
           return {
             props: {
-              user,
+              // user,
               searchResults: searchPersonResults,
               formattedResults: formatSearchPerson(searchPersonResults),
             },
@@ -108,7 +118,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
 
       return {
         props: {
-          user,
+          // user,
           searchResults: searchTrending,
           formattedResults: formatSearchAll(searchTrending),
         },
@@ -117,7 +127,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   } catch (error) {
     return {
       props: {
-        user,
+        // user,
         error: error as ApiError,
       },
     };
