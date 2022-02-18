@@ -38,13 +38,12 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   req,
   query,
 }) => {
-  console.log(req.cookies);
   console.log(req.headers.cookie);
 
   // Current user
   const response = await fetch('https://movies-api.chapmanio.dev/api/auth', {
     headers: {
-      cookie: req.cookies.jwt,
+      cookie: req.headers.cookie ?? '',
     },
   });
 
