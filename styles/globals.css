@@ -27,3 +27,17 @@
     );
   }
 }
+
+/* Override nprogress styles */
+#nprogress .bar {
+  background: theme('colors.indigo.500');
+}
+
+#nprogress .peg {
+  box-shadow: none;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: theme('colors.indigo.500');
+  border-left-color: theme('colors.indigo.500');
+}

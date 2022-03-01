@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
+import NProgress from 'nprogress';
 
 import ListModal from '../components/lists/ListModal';
 
@@ -7,9 +10,34 @@ import { UserProvider } from '../hooks/useUser';
 import { ListProvider } from '../hooks/useList';
 import { ListModalProvider } from '../hooks/useListModal';
 
+import 'nprogress/nprogress.css';
 import '../styles/globals.css';
 
 const MoviesApp = ({ Component, pageProps }: AppProps) => {
+  // Hooks
+  const router = useRouter();
+
+  // Effects
+  useEffect(() => {
+    const handleStart = () => {
+      NProgress.start();
+    };
+
+    const handleStop = () => {
+      NProgress.done();
+    };
+
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', handleStop);
+    router.events.on('routeChangeError', handleStop);
+
+    return () => {
+      router.events.off('routeChangeStart', handleStart);
+      router.events.off('routeChangeComplete', handleStop);
+      router.events.off('routeChangeError', handleStop);
+    };
+  }, [router]);
+
   // Render
   return (
     <>
