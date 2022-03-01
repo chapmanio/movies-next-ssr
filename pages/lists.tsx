@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next';
 import Head from 'next/head';
 
 import DetailsLayout from '../components/layouts/Details';
@@ -11,17 +12,63 @@ import { useListState, useListDispatch } from '../hooks/useList';
 import { addList, deleteList, getAllLists, updateList } from '../lib/api/lists';
 import type { List as ListType } from '../lib/api/types';
 import type { ApiError } from '../lib/api';
+import { authUser, AuthUser } from '../lib/api/auth';
 
 // Types
 type Confirm = Omit<NotificationProps, 'onClose'>;
 
+type ServerSideResponse = {
+  user: AuthUser;
+  lists: ListType[];
+};
+
+// SSR
+export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async ({ req }) => {
+  // Current user
+  let user: AuthUser;
+
+  try {
+    user = await authUser({ cookie: req.headers.cookie ?? '' });
+  } catch (error) {
+    user = { auth: false };
+  }
+
+  // Bounce if not logged in
+  if (!user.auth) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
+  // Lists
+  let lists: ListType[];
+
+  try {
+    lists = await getAllLists({ cookie: req.headers.cookie ?? '' });
+  } catch (error) {
+    lists = [];
+  }
+
+  return {
+    props: {
+      user,
+      lists,
+    },
+  };
+};
+
 // Component
-const Lists = () => {
+const Lists: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
   // Hooks
   const listState = useListState();
   const listDispatch = useListDispatch();
 
   // Local state
+  const [lists, setLists] = useState<ListType[]>(props.lists);
+
   const [slug, setSlug] = useState<string | undefined>(undefined);
   const [name, setName] = useState('');
 
@@ -58,17 +105,8 @@ const Lists = () => {
 
   // Effects
   useEffect(() => {
-    // If they're not already in global state, get the lists
-    if (listState.lists.status !== 'resolved') {
-      getAllLists()
-        .then((lists) => {
-          listDispatch({ type: 'SET_LISTS', lists });
-        })
-        .catch((error: ApiError) => {
-          listDispatch({ type: 'LISTS_ERROR', error });
-        });
-    }
-  }, [listState.lists.status, listDispatch]);
+    setLists(listState.lists ?? []);
+  }, [listState.lists]);
 
   // Handlers
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -198,37 +236,11 @@ const Lists = () => {
           ) : null}
         </form>
 
-        {listState.lists.status === 'pending' ? (
-          <div className="mt-10 animate-pulse">
-            <div className="flex items-center space-x-8">
-              <div className="mt-2 h-7 w-36 rounded bg-gray-100" />
-              <div className="mt-2 h-7 w-2 rounded bg-gray-100" />
-            </div>
-
-            <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-8 lg:gap-x-8 xl:gap-x-12">
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-              <li className="aspect-w-2 aspect-h-3 rounded-lg bg-gray-100" />
-            </ul>
+        {lists.map((list) => (
+          <div key={list.id} className="mt-10">
+            <List list={list} onEdit={() => handleEdit(list)} onDelete={() => handleDelete(list)} />
           </div>
-        ) : listState.lists.status === 'resolved' ? (
-          <>
-            {listState.lists.data.map((list) => (
-              <div key={list.id} className="mt-10">
-                <List
-                  list={list}
-                  onEdit={() => handleEdit(list)}
-                  onDelete={() => handleDelete(list)}
-                />
-              </div>
-            ))}
-          </>
-        ) : null}
+        ))}
       </div>
 
       <Notification

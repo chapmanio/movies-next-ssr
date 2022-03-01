@@ -1,8 +1,5 @@
 import type { ShowResponse } from 'moviedb-promise/dist/request-types';
 
-// Constants
-const API_URL = 'https://movies-api.chapmanio.dev/api';
-
 // Types
 export interface ApiError extends Error {
   status?: number;
@@ -42,7 +39,7 @@ const buildHttpError = async (response: Response): Promise<ApiError> => {
 
 export const apiRaw = async (url: string, init?: RequestInit): Promise<Response> => {
   // Add API prefix to request URL
-  const apiUrl = `${API_URL}${url}`;
+  const apiUrl = `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL}${url}`;
 
   // Call API
   const response = await fetch(apiUrl, {

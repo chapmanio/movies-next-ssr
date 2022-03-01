@@ -1,12 +1,10 @@
 import { createContext, useReducer, useContext } from 'react';
 
-import type { ApiError, ApiResponse } from '../lib/api';
 import type { List, ListItem } from '../lib/api/types';
 
 // Types
 type ListAction =
   | { type: 'SET_LISTS'; lists: List[] }
-  | { type: 'LISTS_ERROR'; error?: ApiError }
   | { type: 'ADD_LIST'; list: List }
   | { type: 'UPDATE_LIST'; id: string; list: List }
   | { type: 'REMOVE_LIST'; id: string }
@@ -15,14 +13,8 @@ type ListAction =
   | { type: 'SET_SELECTED_LIST'; id: string }
   | { type: 'CLEAR_SELECTED_LIST' };
 
-type ListState = { lists: ApiResponse<List[]>; selectedId?: string };
+type ListState = { lists: List[] | undefined; selectedId?: string };
 type ListDispatch = (action: ListAction) => void;
-
-// Initial state
-const defaultInitialState: ListState = {
-  lists: { status: 'pending' },
-  selectedId: undefined,
-};
 
 // Context
 const ListStateContext = createContext<ListState | undefined>(undefined);
@@ -34,44 +26,24 @@ const listReducer = (state: ListState, action: ListAction): ListState => {
     case 'SET_LISTS': {
       return {
         ...state,
-        lists: {
-          status: 'resolved',
-          data: action.lists,
-        },
-      };
-    }
-    case 'LISTS_ERROR': {
-      return {
-        ...state,
-        lists: {
-          status: 'rejected',
-          error: action.error,
-        },
+        lists: action.lists,
       };
     }
     case 'ADD_LIST': {
-      if (state.lists.status !== 'resolved') {
-        throw new Error(`User lists not yet loaded`);
-      }
-
-      const newLists = [...state.lists.data, action.list].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
+      const currentLists = state.lists ?? [];
+      const newLists = [...currentLists, action.list].sort((a, b) => a.name.localeCompare(b.name));
 
       return {
         ...state,
-        lists: {
-          ...state.lists,
-          data: newLists,
-        },
+        lists: newLists,
       };
     }
     case 'UPDATE_LIST': {
-      if (state.lists.status !== 'resolved') {
-        throw new Error(`User lists not yet loaded`);
+      if (!state.lists) {
+        throw new Error(`No user lists found`);
       }
 
-      const updatedLists = state.lists.data.map((list) => {
+      const updatedLists = state.lists.map((list) => {
         if (list.id === action.id) {
           return action.list;
         }
@@ -81,33 +53,27 @@ const listReducer = (state: ListState, action: ListAction): ListState => {
 
       return {
         ...state,
-        lists: {
-          ...state.lists,
-          data: updatedLists,
-        },
+        lists: updatedLists,
       };
     }
     case 'REMOVE_LIST': {
-      if (state.lists.status !== 'resolved') {
-        throw new Error(`User lists not yet loaded`);
+      if (!state.lists) {
+        throw new Error(`No user lists found`);
       }
 
-      const newLists = state.lists.data.filter((list) => list.id !== action.id);
+      const newLists = state.lists.filter((list) => list.id !== action.id);
 
       return {
         ...state,
-        lists: {
-          ...state.lists,
-          data: newLists,
-        },
+        lists: newLists,
       };
     }
     case 'ADD_LIST_ITEM': {
-      if (state.lists.status !== 'resolved') {
-        throw new Error(`User lists not yet loaded`);
+      if (!state.lists) {
+        throw new Error(`No user lists found`);
       }
 
-      const updatedLists = state.lists.data.map((list) => {
+      const updatedLists = state.lists.map((list) => {
         if (list.id === action.id) {
           const currentItems = list.items || [];
           const updatedItems = [...currentItems, action.item].sort((a, b) =>
@@ -125,18 +91,15 @@ const listReducer = (state: ListState, action: ListAction): ListState => {
 
       return {
         ...state,
-        lists: {
-          ...state.lists,
-          data: updatedLists,
-        },
+        lists: updatedLists,
       };
     }
     case 'REMOVE_LIST_ITEM': {
-      if (state.lists.status !== 'resolved') {
-        throw new Error(`User lists not yet loaded`);
+      if (!state.lists) {
+        throw new Error(`No user lists found`);
       }
 
-      const updatedLists = state.lists.data.map((list) => {
+      const updatedLists = state.lists.map((list) => {
         if (list.id === action.id) {
           const currentItems = list.items || [];
           const updatedItems = currentItems.filter((item) => item.id !== action.itemId);
@@ -152,10 +115,7 @@ const listReducer = (state: ListState, action: ListAction): ListState => {
 
       return {
         ...state,
-        lists: {
-          ...state.lists,
-          data: updatedLists,
-        },
+        lists: updatedLists,
       };
     }
     case 'SET_SELECTED_LIST': {
@@ -176,9 +136,9 @@ const listReducer = (state: ListState, action: ListAction): ListState => {
 };
 
 // Provider
-const ListProvider: React.FC<{ initialState?: ListState }> = ({ children, initialState }) => {
+const ListProvider: React.FC<{ initialState: ListState }> = ({ children, initialState }) => {
   // Reducer
-  const [state, dispatch] = useReducer(listReducer, initialState ?? defaultInitialState);
+  const [state, dispatch] = useReducer(listReducer, initialState);
 
   // Render
   return (

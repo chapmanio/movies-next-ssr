@@ -22,8 +22,8 @@ type DeleteListItemArgs = {
 };
 
 // Handlers
-export const getAllLists = async () => {
-  return apiFetch<List[]>(`/list`);
+export const getAllLists = async (headers?: HeadersInit) => {
+  return apiFetch<List[]>(`/list`, { headers });
 };
 
 export const getList = async (slug: string) => {

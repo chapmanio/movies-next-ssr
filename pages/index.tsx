@@ -27,7 +27,7 @@ import { searchTv } from '../lib/api/tvShow';
 type Tab = 'all' | 'movie' | 'tv' | 'person';
 
 type ServerSideResponse = {
-  // user: AuthUser;
+  user: AuthUser;
   searchResults?: SearchMultiResponse;
   formattedResults?: ListItemType[];
   error?: ApiError;
@@ -42,13 +42,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   let user: AuthUser;
 
   try {
-    const response = await fetch('https://movies-api.chapmanio.dev/api/auth', {
-      headers: {
-        cookie: req.headers.cookie ?? '',
-      },
-    });
-
-    user = await response.json();
+    user = await authUser({ cookie: req.headers.cookie ?? '' });
   } catch (error) {
     user = { auth: false };
   }

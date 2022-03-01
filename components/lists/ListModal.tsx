@@ -37,31 +37,25 @@ const ListModal = () => {
 
   // Effects
   useEffect(() => {
-    // When/if we have an authed user, get their lists
-    if (
-      listModalState.item &&
-      listModalState.operation &&
-      userState.auth &&
-      listState.lists.status !== 'resolved'
-    ) {
-      // If we have an authed user, get their lists as well
+    // If we have an authed user, but no lists, get them now!
+    if (listModalState.item && listModalState.operation && userState.auth && !listState.lists) {
       getAllLists()
         .then((lists) => {
           listDispatch({ type: 'SET_LISTS', lists });
         })
         .catch((error: ApiError) => {
-          listDispatch({ type: 'LISTS_ERROR', error });
+          console.error(error);
         });
     }
-  }, [listModalState, userState, listState.lists.status, listDispatch]);
+  }, [listModalState, userState, listState.lists, listDispatch]);
 
   useEffect(() => {
-    if (listState.lists.status === 'resolved' && listState.lists.data.length > 0) {
+    if (listState.lists && listState.lists.length > 0) {
       const selectedList = listState.selectedId
-        ? listState.lists.data.find((list) => list.id === listState.selectedId)
+        ? listState.lists.find((list) => list.id === listState.selectedId)
         : undefined;
 
-      setList(selectedList ? selectedList.id : listState.lists.data[0].id);
+      setList(selectedList ? selectedList.id : listState.lists[0].id);
     }
   }, [listState]);
 
@@ -271,72 +265,68 @@ const ListModal = () => {
                 <>
                   {listModalState.operation === 'add' ? (
                     <div className="mt-6">
-                      {listState.lists.status === 'pending' ? (
+                      {!listState.lists ? (
                         <div className="flex space-x-2">
                           <div className="h-9 w-2/3 animate-pulse rounded-md bg-gray-100" />
                           <div className="h-9 w-1/3 animate-pulse rounded-md bg-gray-100" />
                         </div>
-                      ) : listState.lists.status === 'resolved' ? (
-                        <>
-                          {listState.lists.data.length > 0 ? (
-                            <form className="flex space-x-2" onSubmit={handleAddToList}>
-                              <select
-                                id="list"
-                                name="list"
-                                className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                                value={list}
-                                onChange={(event) => setList(event.target.value)}
-                              >
-                                {listState.lists.data.map((list) => (
-                                  <option key={list.id} value={list.id}>
-                                    {list.name}
-                                  </option>
-                                ))}
-                              </select>
+                      ) : listState.lists.length > 0 ? (
+                        <form className="flex space-x-2" onSubmit={handleAddToList}>
+                          <select
+                            id="list"
+                            name="list"
+                            className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                            value={list}
+                            onChange={(event) => setList(event.target.value)}
+                          >
+                            {listState.lists.map((list) => (
+                              <option key={list.id} value={list.id}>
+                                {list.name}
+                              </option>
+                            ))}
+                          </select>
 
-                              <button
-                                type="submit"
-                                className={
-                                  `flex-none rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2` +
-                                  (submitLoading ? ` opacity-75` : ` hover:bg-indigo-700`)
-                                }
-                                disabled={submitLoading}
-                              >
-                                {submitLoading ? `Please wait...` : `Add to list`}
-                              </button>
-                            </form>
-                          ) : (
-                            <div className="flex space-x-2">
-                              <div className="w-full">
-                                <label htmlFor="email" className="sr-only">
-                                  Email
-                                </label>
-                                <input
-                                  type="text"
-                                  name="name"
-                                  id="name"
-                                  className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                                  placeholder="List name"
-                                  value={name}
-                                  onChange={(e) => setName(e.target.value)}
-                                />
-                              </div>
+                          <button
+                            type="submit"
+                            className={
+                              `flex-none rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2` +
+                              (submitLoading ? ` opacity-75` : ` hover:bg-indigo-700`)
+                            }
+                            disabled={submitLoading}
+                          >
+                            {submitLoading ? `Please wait...` : `Add to list`}
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="flex space-x-2">
+                          <div className="w-full">
+                            <label htmlFor="email" className="sr-only">
+                              Email
+                            </label>
+                            <input
+                              type="text"
+                              name="name"
+                              id="name"
+                              className="block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                              placeholder="List name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                            />
+                          </div>
 
-                              <button
-                                type="button"
-                                className={
-                                  `flex-none rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2` +
-                                  (submitLoading ? ` opacity-75` : ` hover:bg-indigo-700`)
-                                }
-                                disabled={submitLoading}
-                                onClick={handleAddList}
-                              >
-                                {submitLoading ? `Please wait...` : `Create list`}
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      ) : null}
+                          <button
+                            type="button"
+                            className={
+                              `flex-none rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2` +
+                              (submitLoading ? ` opacity-75` : ` hover:bg-indigo-700`)
+                            }
+                            disabled={submitLoading}
+                            onClick={handleAddList}
+                          >
+                            {submitLoading ? `Please wait...` : `Create list`}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : listModalState.operation === 'remove' && listModalState.list ? (
                     <>

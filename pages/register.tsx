@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { GetServerSideProps, NextPage } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,10 +9,32 @@ import HomeLayout from '../components/layouts/Home';
 
 import { useUserDispatch } from '../hooks/useUser';
 
-import { registerUser } from '../lib/api/auth';
+import { authUser, registerUser } from '../lib/api/auth';
 import { ApiError } from '../lib/api';
 
-const Register = () => {
+// SSR
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  // Redirect if we're already logged in
+  try {
+    const user = await authUser({ cookie: req.headers.cookie ?? '' });
+
+    if (user.auth) {
+      return {
+        redirect: {
+          destination: '/',
+          permanent: false,
+        },
+      };
+    }
+  } catch (error) {
+    return { props: {} };
+  }
+
+  return { props: {} };
+};
+
+// Component
+const Register: NextPage = () => {
   // Hooks
   const router = useRouter();
   const userDispatch = useUserDispatch();

@@ -18,15 +18,18 @@ import { AuthUser, authUser } from '../../lib/api/auth';
 
 // Types
 type ServerSideResponse = {
-  user: AuthUser | undefined;
+  user: AuthUser;
   person: PersonResponse;
   credits?: ListItemType[];
 };
 
 // SSR
-export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async (context) => {
+export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async ({
+  req,
+  query,
+}) => {
   // Validate params
-  if (!context.query.id) {
+  if (!query.id) {
     return {
       redirect: {
         destination: '/',
@@ -35,7 +38,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
     };
   }
 
-  const personId = parseInt(context.query.id.toString());
+  const personId = parseInt(query.id.toString());
 
   // Get the movie
   let person: PersonResponse;
@@ -75,8 +78,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   let user: AuthUser;
 
   try {
-    user = await authUser();
-    console.log('person', { user });
+    user = await authUser({ cookie: req.headers.cookie ?? '' });
   } catch (error) {
     user = { auth: false };
   }

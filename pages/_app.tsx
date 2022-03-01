@@ -1,5 +1,4 @@
-import type { AppContext, AppProps } from 'next/app';
-import App from 'next/app';
+import type { AppProps } from 'next/app';
 import Head from 'next/head';
 
 import ListModal from '../components/lists/ListModal';
@@ -22,7 +21,7 @@ const MoviesApp = ({ Component, pageProps }: AppProps) => {
       </Head>
 
       <UserProvider initialState={pageProps.user ?? { auth: false }}>
-        <ListProvider>
+        <ListProvider initialState={{ lists: pageProps.lists ?? undefined }}>
           <ListModalProvider>
             <Component {...pageProps} />
 
@@ -32,15 +31,6 @@ const MoviesApp = ({ Component, pageProps }: AppProps) => {
       </UserProvider>
     </>
   );
-};
-
-MoviesApp.getInitialProps = async (appContext: AppContext) => {
-  console.log('app', appContext.ctx.req?.headers.cookie);
-
-  // calls page's `getInitialProps` and fills `appProps.pageProps`
-  const appProps = await App.getInitialProps(appContext);
-
-  return { ...appProps };
 };
 
 export default MoviesApp;

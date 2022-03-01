@@ -14,14 +14,12 @@ import { authUser, signIn } from '../lib/api/auth';
 import { ApiError } from '../lib/api';
 
 // SSR
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   // Redirect if we're already logged in
   try {
-    const user = await authUser();
+    const user = await authUser({ cookie: req.headers.cookie ?? '' });
 
-    console.log('sign in', { user });
-
-    if (user && user.auth) {
+    if (user.auth) {
       return {
         redirect: {
           destination: '/',

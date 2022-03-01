@@ -18,15 +18,18 @@ import { AuthUser, authUser } from '../../lib/api/auth';
 
 // Types
 type ServerSideResponse = {
-  user: AuthUser | undefined;
+  user: AuthUser;
   tvShow: ExtShowResponse;
   credits?: CreditsResponse;
 };
 
 // SSR
-export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async (context) => {
+export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async ({
+  req,
+  query,
+}) => {
   // Validate params
-  if (!context.query.id) {
+  if (!query.id) {
     return {
       redirect: {
         destination: '/',
@@ -35,7 +38,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
     };
   }
 
-  const tvShowId = parseInt(context.query.id.toString());
+  const tvShowId = parseInt(query.id.toString());
 
   // Get the tv show
   let tvShow: ExtShowResponse;
@@ -73,8 +76,7 @@ export const getServerSideProps: GetServerSideProps<ServerSideResponse> = async 
   let user: AuthUser;
 
   try {
-    user = await authUser();
-    console.log('tv', { user });
+    user = await authUser({ cookie: req.headers.cookie ?? '' });
   } catch (error) {
     user = { auth: false };
   }
