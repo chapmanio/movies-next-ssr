@@ -105,7 +105,17 @@ const Lists: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = 
 
   // Effects
   useEffect(() => {
-    setLists(listState.lists ?? []);
+    // Set the global state initially
+    if (!listState.lists) {
+      listDispatch({ type: 'SET_LISTS', lists });
+    }
+  }, [lists, listState.lists, listDispatch]);
+
+  useEffect(() => {
+    // Update from global state
+    if (listState.lists) {
+      setLists(listState.lists);
+    }
   }, [listState.lists]);
 
   // Handlers

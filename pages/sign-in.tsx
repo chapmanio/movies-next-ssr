@@ -68,8 +68,6 @@ const SignIn: NextPage = () => {
           },
         });
 
-        console.log(user);
-
         // Bounce home
         router.push('/');
       })
