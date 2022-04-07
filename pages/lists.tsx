@@ -130,7 +130,7 @@ const Lists: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = 
         updateList({ slug, name })
           .then((list) => {
             // Update list
-            listDispatch({ type: 'UPDATE_LIST', id: list.id, list });
+            listDispatch({ type: 'UPDATE_LIST', slug: list.slug, list });
 
             // Clear form and confirm
             actionComplete('List updated');
@@ -176,7 +176,7 @@ const Lists: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = 
     deleteList(list.slug)
       .then(() => {
         // Remove list
-        listDispatch({ type: 'REMOVE_LIST', id: list.id });
+        listDispatch({ type: 'REMOVE_LIST', slug: list.slug });
 
         // Clear and confirm
         actionComplete('List removed');
